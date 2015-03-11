@@ -33,4 +33,4 @@ fs.readdir('units', function(err, unitFileArray) {
 
 	writeFile(regiments, "regimentdata.js");
 	writeFile(ships, "shipdata.js");
-})
+});
