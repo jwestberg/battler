@@ -1,5 +1,6 @@
 var mil = require('./miltechdata.js')
 var units = require('./regimentdata.js')
+var _und = require('./lib/underscore.js')
 
 function getModifiers(techLevel) {
   var modifiers = {
@@ -25,12 +26,13 @@ function getUnit(tech_level, tech_group, type) {
   if(tech_level < 0) throw "Error";
   var enabled = mil.miltech[tech_level].enable;
   if(typeof enabled != 'undefined') {
-    for(var i=0; i<enabled.length; i++) {
-      unit = units.regiments[enabled[i]];
-      if(unit.unit_type == tech_group && unit.type == type) {
-        unit.name = enabled[i];
-        return unit;
-      } 
+    name = _und.find(enabled, function(name) {
+      return (tech_group == null || units.regiments[name].unit_type == tech_group) && units.regiments[name].type == type;
+    });
+    if(typeof name != 'undefined') {
+      unit = units.regiments[name];
+      unit.name = name;
+      return unit;
     }
   } 
   return getUnit(tech_level-1, tech_group, type);
@@ -40,4 +42,18 @@ function getInfantry(tech_level, tech_group) {
   return getUnit(tech_level, tech_group, 'infantry')
 }
 
-console.log(getInfantry(10, "western"))
+function getCavalry(tech_level, tech_group) {
+  return getUnit(tech_level, tech_group, 'cavalry')
+}
+
+function getArtillery(tech_level, tech_group) {
+  return getUnit(tech_level, null, 'artillery')
+}
+
+function count(unit) {
+  return _und.reduce(Object.keys(unit), function(memo, num) { if(typeof unit[num] === 'number') return memo + unit[num]; return memo; }, 0)
+}
+
+exports.getArtillery = getArtillery
+exports.getInfantry = getInfantry
+exports.getCavalry = getCavalry

@@ -1,4 +1,5 @@
 var terrains = require('./terrains.js')
+var tech = require('./tech.js')
 
 function Battle(attacker, defender, terrain, crossing) {
 	return {
@@ -18,21 +19,21 @@ function General(fire, shock, manouver, siege) {
 	}
 }
 
-function Army(general, divisions, morale) {
+function Army(general, tech_group, tech_level, infantry, cavalry, artillery) {
 	return {
 		general: general,
-		divisions: divisions,
-		morale: morale
+		regiments: multiply(tech.getInfantry(tech_level, tech_group), infantry)
+                  .concat(multiply(tech.getCavalry(tech_level, tech_group), cavalry))
+                  .concat(multiply(tech.getArtillery(tech_level, tech_group), artillery))
 	}
 }
 
-function Regiment(size, type, fire, shock, morale_pips) {
-	return {
-		size: size,
-		fire: fire,
-		shock: shock,
-		morale: morale
-	}
+function multiply(object, size) {
+  var array = []
+  for(var i=0; i<size; i++) {
+    array.push(JSON.parse(JSON.stringify(object)))
+  }
+  return array;
 }
 
 function roll() {
@@ -44,25 +45,4 @@ function tick(battle, attacker_roll, defender_roll) {
 	//attacker_roll = attacker_roll + battle.terrain.attacker_modifier + battle.crossing
 }
 
-attacker = {
-	infantry: 10 ,
-	cavalry: 10,
-	artillery: 10,
-	discipline: 3,
-	morale: 3,
-	combat_width: 10,
-	general: General(1, 1, 1, 1)
-}
-
-defender = {
-	infantry: 10,
-	cavalry: 10,
-	artillery: 10,
-	discipline: 3,
-	morale: 3,
-	combat_width: 10,
-	general: General(1, 1, 1, 1)
-}
-b = Battle(attacker, defender, terrains.plains, -2)
-tick(b, roll(), roll())
-console.log(terrains.plains)
+console.log(Army(General(1,1,1,1), "western", 10, 1, 1, 1))
