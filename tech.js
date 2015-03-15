@@ -57,3 +57,5 @@ function count(unit) {
 exports.getArtillery = getArtillery
 exports.getInfantry = getInfantry
 exports.getCavalry = getCavalry
+
+//getInfantry(3, "western")
