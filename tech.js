@@ -2,7 +2,7 @@ var mil = require('./miltechdata.js')
 var units = require('./regimentdata.js')
 var _und = require('./lib/underscore.js')
 
-function getModifiers(techLevel) {
+exports.getModifiers = function (techLevel) {
   var modifiers = {
     infantry_fire: 0,
     infantry_shock: 0,

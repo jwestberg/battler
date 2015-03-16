@@ -7,6 +7,9 @@ function Battle(attacker, defender, terrain, crossing) {
   this.defender = defender; 
   this.terrain = terrain;
 	this.crossing = crossing;
+  
+  attacker.deploy(terrain);
+  defender.deploy(terrain);
 }
 
 function General(fire, shock, manouver, siege) {
@@ -25,6 +28,7 @@ function Country(tech_level, tech_group, discipline, max_morale) {
 
 function Army(general, country, num_infantry, num_cavalry, num_artillery) {
   this.general = general;
+  this.country = country;
   
   var ms = function(tag, regs) {
     return _und.map(regs, function(reg) {
@@ -51,6 +55,39 @@ function Army(general, country, num_infantry, num_cavalry, num_artillery) {
       return memo + unit.strength; 
     }, 0)
   }
+  
+  this.firstrow = []
+  this.secondrow = []
+  
+  this.deploy = function(terrain) {
+    var width = Math.floor(tech.getModifiers(this.country.tech_level).combat_width * terrain.combat_width); //TODO: Verify floor is correct
+    var firstrowreserved = 2*(Math.floor(width/10)) + 2; //TODO: Observe in the wild
+    if (width-firstrowreserved < this.infantry.length) {
+      for (var i = 0; i<width-firstrowreserved; i++) {
+        this.firstrow[i+firstrowreserved/2] = this.infantry[i];
+        this.infantry[i].deployed = true
+      }
+      for(var i = 0; i<firstrowreserved && i<this.cavalry.length; i++) {
+        if(i%2 == 0) {
+          this.firstrow[i/2] = this.cavalry[i];
+        } else {
+          this.firstrow[width-Math.ceil(i/2)] = this.cavalry[i];
+        }
+        this.cavalry[i].deployed = true;
+      }
+      for(var i=0; i<width; i++) {
+        if(typeof this.firstrow[i] == 'undefined') {
+          this.firstrow[i] = _und.find(this.infantry, function(unit) { return !unit.deployed; });
+          this.firstrow[i].deployed = true;
+        }
+      }
+    }
+  };
+  
+  this.asciiRows = function() {
+    return _und.map(this.firstrow, function(unit) { return unit.type.charAt(0); }).join('')+
+      '\n'+_und.map(this.secondrow, function(unit) { return unit.type.charAt(0); }).join('')
+  }
 }
 
 function roll() {
@@ -62,8 +99,14 @@ function tick(battle, attacker_roll, defender_roll) {
 	//attacker_roll = attacker_roll + battle.terrain.attacker_modifier + battle.crossing
 }
 
-var attacker = new Country(10, "western", 2.5, 2.5)
-var defender = new Country(10, "chinese", 2.5, 2.5)
+var attacker_country = new Country(10, "western", 2.5, 2.5)
+var defender_country = new Country(10, "chinese", 2.5, 2.5)
 var general = new General(1,1,1,1);
 
-console.log(new Army(general, attacker, 1, 5, 1).size())
+var attacker_army = new Army(general, attacker_country, 1000, 2, 1);
+var defender_army = new Army(general, defender_country, 5, 1, 1);
+var battle = new Battle(attacker_army, defender_army, terrains.mountains, -1)
+
+console.log(attacker_army.asciiRows())
+
+console.log(attacker_army.asciiRows().length)
